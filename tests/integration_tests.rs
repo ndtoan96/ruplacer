@@ -9,7 +9,7 @@ use ruplacer::Settings;
 
 fn setup_test(tmp_dir: &TempDir) -> PathBuf {
     let tmp_path = tmp_dir.path();
-    #[cfg(target_os="linux")]
+    #[cfg(any(target_os="linux", target_os="macos"))]
     let status = Command::new("cp")
         .args(&["-R", "tests/data", &tmp_path.to_string_lossy()])
         .status()
@@ -129,7 +129,28 @@ fn test_can_replace_ignored_files() {
     run_ruplacer(&data_path, settings);
 
     let ignored_path = data_path.join("ignore.txt");
-    assert_not_replaced(&ignored_path);
+    assert_replaced(&ignored_path);
+}
+
+#[test]
+fn test_can_replace_gitignore_files() {
+    let tmp_dir = TempDir::new("test-ruplacer").expect("failed to create temp dir");
+    // rename __gitignore to .gitignore
+    std::fs::rename(Path::new("tests/data/__gitignore"), Path::new("tests/data/.gitignore"))
+        .expect("Can not rename tests/data/__gitignore");
+    let data_path = setup_test(&tmp_dir);
+    // rename .gitignore back to __gitignore
+    std::fs::rename(Path::new("tests/data/.gitignore"), Path::new("tests/data/__gitignore"))
+        .expect("Can not rename tests/data/.gitignore");
+
+    let settings = Settings {
+        ignored: true,
+        ..Default::default()
+    };
+    run_ruplacer(&data_path, settings);
+
+    let ignored_path = data_path.join("gitignore.txt");
+    assert_replaced(&ignored_path);
 }
 
 #[test]
