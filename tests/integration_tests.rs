@@ -134,6 +134,8 @@ fn test_can_replace_ignored_files() {
 
 #[test]
 fn test_can_replace_gitignore_files() {
+    // If we leave the file name as .gitignore then the gitignore.txt file will be ignored by git.
+    // Therefore we name it as __gitignore and change the name only when testing.
     let tmp_dir = TempDir::new("test-ruplacer").expect("failed to create temp dir");
     // rename __gitignore to .gitignore
     std::fs::rename(Path::new("tests/data/__gitignore"), Path::new("tests/data/.gitignore"))
